@@ -5,7 +5,7 @@ project_slug: project-template
 project_name: Project Template
 project_type: system
 template_mode: true
-status: BOOTSTRAP
+status: IMPLEMENTING
 authority_files:
   - docs/authority/AUTHORITY.md
 ---
@@ -14,26 +14,32 @@ authority_files:
 
 ## Current authority
 
-The exact current repository head containing this reusable project-control skeleton.
+`main` at exact commit `820e2ed44484b847a55cf95bfdfc698e6bbf45bd`.
+
+Shared repository-control contracts are governed by `armpitpete/merrin-project-controls` Foundation v0.1 at exact commit `b784573ad86d8d54ba1108dc1bf952260ee4c6bb`.
 
 ## Current lane
 
-Maintain and validate the reusable future-project bootstrap.
+Maintain the reusable future-project bootstrap as a version-pinned consumer of the canonical shared-control contracts.
+
+The template may package approved controls, but it must not redefine them or become a competing authority.
 
 ## Allowed scope
 
-- template control files;
-- template initializer;
-- project-control validator;
-- CI and pull-request control;
-- documentation of the bootstrap process.
+- template control files and initial repository structure;
+- post-template identity initialisation;
+- deterministic validation of generated repositories;
+- version-pinned adoption of accepted contracts from `merrin-project-controls`;
+- documentation and tests for the bootstrap path.
 
 ## Forbidden changes
 
 - project-specific manuscript, product, language, hardware or research content;
-- claims that generated repositories are authoritative before initialization;
+- independent modification of shared-control meaning;
+- claims that generated repositories are authoritative before initialisation;
 - weakening singular completion authority;
-- bypassing validation.
+- bypassing validation;
+- automatic migration of existing repositories.
 
 ## Validation
 
@@ -48,24 +54,26 @@ Both commands must pass in this repository.
 
 ## Done
 
-- Mandatory project-control file set defined.
+- Mandatory project-control file set defined and merged.
 - Template-mode authority boundary defined.
 - Fixed new-chat bootstrap included.
-- Deterministic control validator included.
-- CI enforcement included.
+- Deterministic control validator and CI enforcement included.
 - Post-template initializer included.
+- Central local wrapper implemented in Project Folder Checker.
+- One disposable repository creation and initialisation proof completed.
+- Canonical shared-control authority assigned to `merrin-project-controls`.
 
 ## To do
 
-- Review and promote the exact template implementation.
-- Mark the GitHub repository as a template repository.
-- Create the central `New-OrderProject.ps1` wrapper.
-- Prove one sacrificial repository creation and initialization.
+- replace copied control meaning with explicit version references to `merrin-project-controls`;
+- prove one bounded Foundation v0.1 consumer integration;
+- confirm or enable the GitHub template-repository setting;
+- document upgrade behaviour when a shared contract version changes.
 
 ## Next bounded gate
 
-Review and promote the exact project-template implementation, then enable the GitHub template-repository setting.
+Adopt one Foundation v0.1 contract by exact version and prove that a newly generated disposable fixture validates without duplicating or weakening the canonical contract.
 
 ## Stop point
 
-Stop before creating or promoting a real project from this template until the template implementation is reviewed and its CI passes.
+Stop before bulk adoption, existing-repository migration or any shared-contract change outside `merrin-project-controls`.
