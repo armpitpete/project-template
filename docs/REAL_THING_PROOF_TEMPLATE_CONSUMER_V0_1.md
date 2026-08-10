@@ -43,10 +43,10 @@ The template does not decide that any bootstrap stage is `NOT_APPLICABLE`. A gen
 
 It performs two bounded jobs:
 
-1. generate and self-check the fixed initial bootstrap profile;
-2. after bootstrap, verify only the repository identity, privacy boundary, and exact `merrin-project-controls@7bc8b7f5ef921851ad163093f089d28d8128bf6c` authority pointer.
+1. generate and self-check the fixed initial bootstrap profile, including its privacy-safe generic content;
+2. after bootstrap, verify only the repository identity and exact `merrin-project-controls@7bc8b7f5ef921851ad163093f089d28d8128bf6c` authority pointer.
 
-It does **not** derive later lifecycle verdicts. Later claims such as `implemented`, `deployed`, `human-acceptance-received`, or `complete` must be evaluated by the canonical shared schema and validator in `merrin-project-controls` under the generated project's own governed lane.
+It does **not** derive later lifecycle verdicts or impose template-level evidence-content policy on later project records. Later claims such as `implemented`, `deployed`, `human-acceptance-received`, or `complete` must be evaluated by the canonical shared schema and validator in `merrin-project-controls` under the generated project's own governed lane.
 
 This separation prevents Project Template from becoming a competing shared-control authority.
 
