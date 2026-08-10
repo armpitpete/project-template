@@ -29,14 +29,17 @@ Local template controls may strengthen these authorities. They must not weaken, 
 
 A generated repository receives a deterministic initial `project-status.json` only when `scripts/initialise_project.py` is run for that repository. The template repository itself must not carry a fake project-status fixture.
 
-The generated record must:
+The generated bootstrap record must:
 
-- preserve the eight lifecycle stages separately;
-- start every required stage without unsupported PASS evidence;
+- preserve all eight lifecycle stages separately;
+- keep all eight bootstrap lifecycle stages required;
+- start all eight stages without unsupported PASS evidence;
 - keep planning percentage and completion likelihood separate from lifecycle proof;
-- derive `complete` only from direct passing evidence for every required stage;
-- treat proxy, missing, inconclusive, or environment-mismatched evidence as insufficient;
+- derive `complete` only from direct passing evidence for all eight bootstrap stages;
+- treat proxy, missing, or environment-mismatched evidence as insufficient;
 - contain no credential, private inventory, local-path, or control-plane material.
+
+The template cannot decide that a bootstrap stage is `NOT_APPLICABLE`. Any later project-specific relaxation belongs to the generated project's own governed authority and must not be inferred or applied by this template consumer.
 
 ## Fixture boundary
 
@@ -46,6 +49,7 @@ A disposable generated fixture may prove:
 - local validator behaviour;
 - the version pin used by the generated status record;
 - rejection of percentage inflation and proxy substitution;
+- rejection of template-level lifecycle relaxation;
 - privacy-safe generic output.
 
 It does not prove a real consumer has deployed, behaves correctly live, or received human acceptance.
