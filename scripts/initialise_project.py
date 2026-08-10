@@ -7,9 +7,12 @@ import argparse
 import re
 from pathlib import Path
 
+from project_status_v2 import write_initial_record
+
 ROOT = Path(__file__).resolve().parents[1]
 STATUS_PATH = ROOT / "STATUS.md"
 AUTHORITY_PATH = ROOT / "docs" / "authority" / "AUTHORITY.md"
+PROJECT_STATUS_PATH = ROOT / "project-status.json"
 
 VALID_TYPES = {"story", "language", "product", "hardware", "research", "system", "other"}
 
@@ -70,7 +73,8 @@ def main() -> int:
         "## Done\n\n"
         "- Repository created from the mandatory project template.\n"
         "- Repository identity initialized.\n"
-        "- Project-control validator installed.\n\n"
+        "- Project-control validator installed.\n"
+        "- Initial Project Status v2 record generated with no unsupported lifecycle PASS.\n\n"
         "## To do",
         status,
         count=1,
@@ -81,7 +85,8 @@ def main() -> int:
         "## To do\n\n"
         "- Identify and preserve source material.\n"
         "- Establish exact project authority.\n"
-        "- Classify the first bounded implementation lane.\n\n"
+        "- Classify the first bounded implementation lane.\n"
+        "- Replace missing lifecycle evidence only with direct evidence from the required real environment.\n\n"
         "## Next bounded gate",
         status,
         count=1,
@@ -117,9 +122,14 @@ def main() -> int:
     )
     AUTHORITY_PATH.write_text(authority, encoding="utf-8", newline="\n")
 
+    write_initial_record(PROJECT_STATUS_PATH, args.repository, args.project_name)
+
     print(f"Initialized {args.repository}")
-    print("Next: python scripts/validate_project_control.py "
-          f"--repository {args.repository}")
+    print("Generated project-status.json with lifecycle_status.verified=insufficient")
+    print(
+        "Next: python scripts/validate_project_control.py "
+        f"--repository {args.repository}"
+    )
     return 0
 
 

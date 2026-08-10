@@ -8,8 +8,13 @@ import os
 import re
 from pathlib import Path
 
+from project_status_v2 import AUTHORITY as PROJECT_STATUS_AUTHORITY
+from project_status_v2 import StatusError, load_and_validate_consumer_pointer
+
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE_REPOSITORY = "armpitpete/project-template"
+THREADKEEPER_AUTHORITY = "a5bc55336c86097301b378d8654ac92a26ef81e5"
+SHARED_CONTROL_AUTHORITY = "7bc8b7f5ef921851ad163093f089d28d8128bf6c"
 VALID_STATUSES = {
     "UNASSESSED",
     "DIAGNOSTIC",
@@ -31,6 +36,8 @@ REQUIRED_FILES = [
     "docs/authority/AUTHORITY.md",
     "scripts/validate_project_control.py",
     "scripts/initialise_project.py",
+    "scripts/project_status_v2.py",
+    ".github/REPOSITORY_WRITE_RULES.md",
     ".github/workflows/project-control.yml",
     ".github/pull_request_template.md",
 ]
@@ -118,6 +125,16 @@ def main() -> int:
     status_text = read("STATUS.md")
     agents_text = read("AGENTS.md")
     authority_text = read("docs/authority/AUTHORITY.md")
+    rules_text = read(".github/REPOSITORY_WRITE_RULES.md")
+
+    if THREADKEEPER_AUTHORITY not in rules_text:
+        failures.append("repository write rules must pin the canonical Threadkeeper protocol")
+    if SHARED_CONTROL_AUTHORITY not in rules_text:
+        failures.append("repository write rules must pin the shared Project Status v2 control")
+    if PROJECT_STATUS_AUTHORITY != (
+        "armpitpete/merrin-project-controls@" + SHARED_CONTROL_AUTHORITY
+    ):
+        failures.append("local Project Status bootstrap pointer does not match the pinned shared control")
 
     try:
         status_meta = front_matter(status_text)
@@ -148,6 +165,11 @@ def main() -> int:
             )
         if status_meta.get("project_slug") != "project-template":
             failures.append("template repository project_slug must be project-template")
+        if (ROOT / "project-status.json").exists():
+            failures.append(
+                "template repository must not contain a project-status.json fixture; "
+                "the initializer creates it only in generated repositories"
+            )
     else:
         if not repository:
             failures.append(
@@ -155,6 +177,14 @@ def main() -> int:
             )
         if status_meta.get("project_slug") in {"", "project-template"}:
             failures.append("generated repository identity has not been initialized")
+        project_status_path = ROOT / "project-status.json"
+        if not project_status_path.is_file():
+            failures.append("generated repository is missing project-status.json")
+        else:
+            try:
+                load_and_validate_consumer_pointer(project_status_path, repository)
+            except StatusError as exc:
+                failures.append(f"project-status.json consumer pointer invalid: {exc}")
 
     for heading in REQUIRED_STATUS_HEADINGS:
         count = len(re.findall(rf"(?m)^## {re.escape(heading)}\s*$", status_text))

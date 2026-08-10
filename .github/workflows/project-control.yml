@@ -19,5 +19,59 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Validate project control
+      - name: Validate template project control
         run: python scripts/validate_project_control.py --repository "${{ github.repository }}"
+
+      - name: Test Project Status v2 consumer
+        working-directory: scripts
+        run: python -m unittest -v test_project_status_v2.py
+
+      - name: Prove disposable generated fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ONE="$(mktemp -d)"
+          TWO="$(mktemp -d)"
+          trap 'rm -rf "$ONE" "$TWO"' EXIT
+
+          cp -a . "$ONE/repo"
+          cp -a . "$TWO/repo"
+          rm -rf "$ONE/repo/.git" "$TWO/repo/.git"
+
+          for TARGET in "$ONE/repo" "$TWO/repo"; do
+            (
+              cd "$TARGET"
+              python scripts/initialise_project.py \
+                --repository owner/disposable-fixture \
+                --project-name "Disposable Fixture" \
+                --project-type system
+              python scripts/validate_project_control.py \
+                --repository owner/disposable-fixture
+            )
+          done
+
+          cmp "$ONE/repo/project-status.json" "$TWO/repo/project-status.json"
+
+          python - "$ONE/repo/project-status.json" <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          path = pathlib.Path(sys.argv[1])
+          record = json.loads(path.read_text(encoding="utf-8"))
+          assert record["percentage_complete"]["estimate"] == 0
+          assert record["lifecycle_status"]["verified"] == "insufficient"
+          assert len(record["lifecycle_status"]["stages"]) == 8
+          assert all(
+              stage["result"] == "INSUFFICIENT"
+              for stage in record["lifecycle_status"]["stages"]
+          )
+          PY
+
+          if grep -Eqi \
+            '(GH_TOKEN|GITHUB_TOKEN|BEGIN PRIVATE KEY|private inventory|sk-)' \
+            "$ONE/repo/project-status.json"; then
+            echo "Generated project-status.json contains private/control-plane material." >&2
+            exit 1
+          fi
