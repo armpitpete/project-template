@@ -17,7 +17,7 @@ Shared Project Status v2 control:
   validator: scripts/validate_project_status.py
 ```
 
-Local template controls may strengthen these authorities. They must not weaken, fork, or compete with them.
+Local template controls may strengthen the initial bootstrap state. They must not weaken, fork, reimplement, or compete with the canonical lifecycle contract.
 
 ## Governing rule
 
@@ -35,24 +35,42 @@ The generated bootstrap record must:
 - keep all eight bootstrap lifecycle stages required;
 - start all eight stages without unsupported PASS evidence;
 - keep planning percentage and completion likelihood separate from lifecycle proof;
-- derive `complete` only from direct passing evidence for all eight bootstrap stages;
-- treat proxy, missing, or environment-mismatched evidence as insufficient;
+- point to the exact shared Project Status v2 authority;
 - contain no credential, private inventory, local-path, or control-plane material.
 
-The template cannot decide that a bootstrap stage is `NOT_APPLICABLE`. Any later project-specific relaxation belongs to the generated project's own governed authority and must not be inferred or applied by this template consumer.
+The template cannot decide that a bootstrap stage is `NOT_APPLICABLE`. Any later project-specific relaxation belongs to the generated project's own governed authority and must be evaluated under the canonical shared schema and validator.
+
+## Validator boundary
+
+`scripts/project_status_v2.py` is a bootstrap adapter, not a second Project Status v2 implementation.
+
+It may:
+
+- generate the fixed initial bootstrap profile;
+- reject inflation or relaxation inside that initial profile;
+- verify that a later record still names the correct repository and exact canonical shared-control authority.
+
+It must not:
+
+- derive or verify later lifecycle statuses;
+- reproduce the canonical lifecycle verdict algorithm;
+- decide whether later evidence is sufficient for `implemented`, `deployed`, `complete`, or any other lifecycle claim;
+- replace `merrin-project-controls/scripts/validate_project_status.py`.
+
+Later lifecycle semantics must be checked by the exact canonical shared control under the generated project's own governed lane.
 
 ## Fixture boundary
 
 A disposable generated fixture may prove:
 
 - deterministic template generation;
-- local validator behaviour;
+- local bootstrap-profile behaviour;
 - the version pin used by the generated status record;
-- rejection of percentage inflation and proxy substitution;
+- rejection of bootstrap percentage inflation and proxy substitution;
 - rejection of template-level lifecycle relaxation;
 - privacy-safe generic output.
 
-It does not prove a real consumer has deployed, behaves correctly live, or received human acceptance.
+It does not prove a real consumer has deployed, behaves correctly live, received human acceptance, or passed the canonical lifecycle validator after later project changes.
 
 ## Existing-repository boundary
 
