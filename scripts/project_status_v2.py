@@ -18,6 +18,16 @@ STAGES = (
     "live-behaviour",
     "human-acceptance",
 )
+CLAIM_TO_STAGE = {
+    "designed": "designed",
+    "implemented": "implemented",
+    "automated-checks-passed": "automated-checks",
+    "independently-reviewed": "independent-review",
+    "merged": "merged",
+    "deployed": "deployed",
+    "live-behaviour-verified": "live-behaviour",
+    "human-acceptance-received": "human-acceptance",
+}
 REQUIRED_ENVIRONMENTS = {
     "designed": "accepted project authority",
     "implemented": "exact implementation commit",
@@ -108,7 +118,7 @@ def derive_verified(record: dict[str, Any]) -> str:
     stages = _stage_map(record)
     lifecycle = record["lifecycle_status"]
     claimed = lifecycle.get("claimed")
-    valid_claims = set(STAGES) | {"complete"}
+    valid_claims = set(CLAIM_TO_STAGE) | {"complete"}
     if claimed not in valid_claims:
         raise StatusError(f"unsupported lifecycle claim: {claimed!r}")
 
@@ -119,7 +129,8 @@ def derive_verified(record: dict[str, Any]) -> str:
     if claimed == "complete":
         relevant = required
     else:
-        claim_index = STAGES.index(claimed)
+        claimed_stage = CLAIM_TO_STAGE[claimed]
+        claim_index = STAGES.index(claimed_stage)
         relevant = [stage for stage in required if STAGES.index(stage) <= claim_index]
 
     for stage in relevant:
@@ -183,7 +194,7 @@ def validate(record: Any) -> None:
                 raise StatusError(f"{stage}: required_environment does not match the local consumer contract")
             if result not in {"PASS", "FAIL", "INSUFFICIENT"}:
                 raise StatusError(f"{stage}: required stage has invalid result {result!r}")
-            if relationship not in {"direct", "proxy", "missing", "inconclusive"}:
+            if relationship not in {"direct", "proxy", "missing"}:
                 raise StatusError(f"{stage}: invalid evidence relationship {relationship!r}")
             if not isinstance(evidence, list):
                 raise StatusError(f"{stage}: evidence must be an array")
