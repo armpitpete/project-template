@@ -58,6 +58,20 @@ class ProjectStatusV2Tests(unittest.TestCase):
         with self.assertRaises(StatusError):
             validate(record)
 
+    def test_bootstrap_cannot_mark_stage_not_applicable(self) -> None:
+        record = initial_record("owner/example", "Example")
+        human = record["lifecycle_status"]["stages"][-1]
+        human.update(
+            {
+                "required": False,
+                "result": "NOT_APPLICABLE",
+                "relationship": "not-applicable",
+                "rationale": "Attempted local relaxation.",
+            }
+        )
+        with self.assertRaises(StatusError):
+            validate(record)
+
     def test_complete_requires_direct_evidence_for_every_required_stage(self) -> None:
         record = initial_record("owner/example", "Example")
         record["lifecycle_status"]["claimed"] = "complete"
