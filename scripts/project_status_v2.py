@@ -180,8 +180,9 @@ def validate_initial_bootstrap(record: Any) -> None:
 def validate_consumer_pointer(record: Any, repository: str | None = None) -> None:
     """Check only consumer identity and the exact canonical authority pointer.
 
-    Later lifecycle semantics are intentionally left to the canonical shared schema
-    and validator. This function must not grow into a second lifecycle validator.
+    Later lifecycle semantics and project-specific evidence are intentionally left to
+    the canonical shared schema and validator. This function must not grow into a
+    second lifecycle or evidence-policy validator.
     """
 
     if not isinstance(record, dict):
@@ -196,7 +197,6 @@ def validate_consumer_pointer(record: Any, repository: str | None = None) -> Non
     lifecycle = record.get("lifecycle_status")
     if not isinstance(lifecycle, dict) or lifecycle.get("authority") != AUTHORITY:
         raise StatusError("project status does not point to the exact shared Project Status v2 authority")
-    _forbid_private_fragments(record)
 
 
 def write_initial_record(path: Path, repository: str, project_name: str) -> None:
