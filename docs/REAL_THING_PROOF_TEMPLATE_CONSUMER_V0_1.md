@@ -26,25 +26,30 @@ python scripts/validate_project_control.py \
   --repository OWNER/REPOSITORY
 ```
 
-Initialisation creates `project-status.json` only in the generated repository. The record:
+Initialisation creates `project-status.json` only in the generated repository. The bootstrap record:
 
 - starts with planning estimate `0`;
 - carries all eight lifecycle stages;
-- marks every required stage `INSUFFICIENT`;
+- keeps all eight bootstrap lifecycle stages required;
+- marks all eight stages `INSUFFICIENT` until direct evidence exists;
 - uses the exact shared Project Status v2 authority pin;
 - makes no deployment, live-behaviour, human-acceptance, or completion claim.
+
+The template does not decide that any bootstrap stage is `NOT_APPLICABLE`. A generated project may later change its own required stages only through that project's separate governed authority and evidence trail.
 
 ## Evidence boundary
 
 Percentage and likelihood are planning information. They cannot establish lifecycle proof.
 
-For a required stage, `PASS` or `FAIL` requires direct evidence from the declared required environment. Proxy-only, missing, inconclusive, or environment-mismatched evidence remains insufficient.
+For a bootstrap stage, `PASS` or `FAIL` requires direct evidence from the declared required environment. Proxy-only, missing, or environment-mismatched evidence remains insufficient.
 
-`complete` requires direct passing evidence for every required stage. A 100% planning estimate cannot change that result.
+`complete` requires direct passing evidence for all eight bootstrap stages. A 100% planning estimate cannot change that result.
 
 ## Disposable proof
 
 CI creates two temporary copies of the template, initializes the same generic disposable repository in each, validates both, and compares the generated status records byte-for-byte.
+
+Focused regressions also reject percentage inflation, proxy PASS, missing required evidence, and template-level attempts to mark a bootstrap stage `NOT_APPLICABLE`.
 
 That proves deterministic local generation and validation only. It does not prove adoption by any existing repository or any real deployment, live behaviour, or owner acceptance.
 
