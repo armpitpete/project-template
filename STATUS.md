@@ -27,7 +27,7 @@ This repository consumes those controls. It does not redefine them.
 
 ## Current lane
 
-Issue #3 / `agent/real-thing-proof-template-v0-1`: make the reusable future-project bootstrap generate and validate an evidence-bound initial Project Status v2 record.
+Issue #3 / `agent/real-thing-proof-template-v0-1`: make the reusable future-project bootstrap generate an evidence-safe initial Project Status v2 profile and preserve an exact canonical authority pointer without duplicating lifecycle verdict logic.
 
 The lane stops before merge.
 
@@ -38,14 +38,16 @@ The lane stops before merge.
 - deterministic validation of generated repositories;
 - version-pinned adoption of accepted contracts from `merrin-project-controls`;
 - deterministic initial `project-status.json` generation for newly initialized repositories;
+- bootstrap-profile and canonical-pointer checks that do not reimplement later lifecycle verdicts;
 - documentation and tests for the bootstrap path.
 
 ## Forbidden changes
 
 - project-specific manuscript, product, language, hardware or research content;
-- independent modification of shared-control meaning;
+- independent modification or reimplementation of shared-control meaning;
 - claims that generated repositories are authoritative before initialisation;
 - treating planning percentage, CI, fixtures, or proxy evidence as real lifecycle proof;
+- deriving later lifecycle verdicts inside Project Template instead of the canonical shared validator;
 - weakening singular completion authority;
 - bypassing validation;
 - automatic migration of existing repositories;
@@ -63,6 +65,8 @@ python -m unittest -v test_project_status_v2.py
 
 CI additionally initializes two disposable temporary copies, validates them, and requires byte-identical privacy-safe `project-status.json` output.
 
+The local bootstrap adapter may self-check only the fixed initial profile and exact canonical pointer. It is not the canonical Project Status v2 lifecycle validator.
+
 ## Done
 
 - Mandatory project-control file set defined and merged.
@@ -79,7 +83,7 @@ CI additionally initializes two disposable temporary copies, validates them, and
 
 - complete Batch 3 implementation against exact baseline `50b15cee57702143161d3d8814ce412cf1124e0e`;
 - obtain exact-head automated checks;
-- obtain independent exact-head review;
+- obtain independent exact-head review against the canonical schema/validator boundary;
 - merge only through a separate protected gate;
 - confirm or enable the GitHub template-repository setting only through its own later authority;
 - document future upgrade behaviour when a shared contract version changes.
