@@ -31,27 +31,38 @@ Initialisation creates `project-status.json` only in the generated repository. T
 - starts with planning estimate `0`;
 - carries all eight lifecycle stages;
 - keeps all eight bootstrap lifecycle stages required;
-- marks all eight stages `INSUFFICIENT` until direct evidence exists;
+- marks all eight stages `INSUFFICIENT` with missing evidence;
 - uses the exact shared Project Status v2 authority pin;
 - makes no deployment, live-behaviour, human-acceptance, or completion claim.
 
-The template does not decide that any bootstrap stage is `NOT_APPLICABLE`. A generated project may later change its own required stages only through that project's separate governed authority and evidence trail.
+The template does not decide that any bootstrap stage is `NOT_APPLICABLE`. A generated project may later change its own required stages only through that project's separate governed authority and the canonical shared lifecycle contract.
 
-## Evidence boundary
+## Consumer / validator boundary
+
+`scripts/project_status_v2.py` is intentionally a bootstrap adapter rather than a local copy of the canonical Project Status v2 validator.
+
+It performs two bounded jobs:
+
+1. generate and self-check the fixed initial bootstrap profile;
+2. after bootstrap, verify only the repository identity, privacy boundary, and exact `merrin-project-controls@7bc8b7f5ef921851ad163093f089d28d8128bf6c` authority pointer.
+
+It does **not** derive later lifecycle verdicts. Later claims such as `implemented`, `deployed`, `human-acceptance-received`, or `complete` must be evaluated by the canonical shared schema and validator in `merrin-project-controls` under the generated project's own governed lane.
+
+This separation prevents Project Template from becoming a competing shared-control authority.
+
+## Bootstrap evidence boundary
 
 Percentage and likelihood are planning information. They cannot establish lifecycle proof.
 
-For a bootstrap stage, `PASS` or `FAIL` requires direct evidence from the declared required environment. Proxy-only, missing, or environment-mismatched evidence remains insufficient.
-
-`complete` requires direct passing evidence for all eight bootstrap stages. A 100% planning estimate cannot change that result.
+Inside the fixed bootstrap profile, no stage may carry PASS/FAIL evidence, proxy substitution, or `NOT_APPLICABLE`; every stage begins required and insufficient. Those are bootstrap-generation invariants, not a replacement lifecycle contract.
 
 ## Disposable proof
 
 CI creates two temporary copies of the template, initializes the same generic disposable repository in each, validates both, and compares the generated status records byte-for-byte.
 
-Focused regressions also reject percentage inflation, proxy PASS, missing required evidence, and template-level attempts to mark a bootstrap stage `NOT_APPLICABLE`.
+Focused regressions reject bootstrap percentage inflation, proxy/PASS substitution, unsupported completion, lifecycle-stage relaxation, wrong repository identity, and a wrong shared-control authority pointer. A separate regression proves the permanent consumer check does not adjudicate later lifecycle verdicts.
 
-That proves deterministic local generation and validation only. It does not prove adoption by any existing repository or any real deployment, live behaviour, or owner acceptance.
+That proves deterministic local bootstrap generation and pointer enforcement only. It does not prove adoption by any existing repository or any real deployment, live behaviour, owner acceptance, or later canonical lifecycle validity.
 
 The disposable copies remain inside the CI runner and are removed when the step exits. No GitHub repository is created or mutated by the proof.
 
