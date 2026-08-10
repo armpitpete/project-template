@@ -9,7 +9,7 @@ import re
 from pathlib import Path
 
 from project_status_v2 import AUTHORITY as PROJECT_STATUS_AUTHORITY
-from project_status_v2 import StatusError, load_and_validate
+from project_status_v2 import StatusError, load_and_validate_consumer_pointer
 
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE_REPOSITORY = "armpitpete/project-template"
@@ -134,7 +134,7 @@ def main() -> int:
     if PROJECT_STATUS_AUTHORITY != (
         "armpitpete/merrin-project-controls@" + SHARED_CONTROL_AUTHORITY
     ):
-        failures.append("local Project Status v2 helper authority does not match the pinned shared control")
+        failures.append("local Project Status bootstrap pointer does not match the pinned shared control")
 
     try:
         status_meta = front_matter(status_text)
@@ -182,9 +182,9 @@ def main() -> int:
             failures.append("generated repository is missing project-status.json")
         else:
             try:
-                load_and_validate(project_status_path)
+                load_and_validate_consumer_pointer(project_status_path, repository)
             except StatusError as exc:
-                failures.append(f"project-status.json {exc}")
+                failures.append(f"project-status.json consumer pointer invalid: {exc}")
 
     for heading in REQUIRED_STATUS_HEADINGS:
         count = len(re.findall(rf"(?m)^## {re.escape(heading)}\s*$", status_text))
