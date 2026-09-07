@@ -7,19 +7,50 @@ import re
 from pathlib import Path
 
 HOSTED = re.compile(r"\b(?:ubuntu|windows|macos)-(?:latest|[0-9][A-Za-z0-9._-]*)\b", re.I)
-RUNS_ON = re.compile(r"(?m)^\s*runs-on:\s*(.+?)\s*$")
-UPLOAD = re.compile(r"uses:\s*actions/upload-artifact@", re.I)
+RUNS_ON_LINE = re.compile(r"^(?P<indent>[ \t]*)runs-on:[ \t]*(?P<value>[^\r\n]*)$", re.I)
+UPLOAD_ARTIFACT = re.compile(r"uses:\s*actions/upload-artifact@", re.I)
+UPLOAD_PAGES_ARTIFACT = re.compile(r"uses:\s*actions/upload-pages-artifact@", re.I)
 CACHE_ACTION = re.compile(r"uses:\s*actions/cache@", re.I)
 SETUP_CACHE = re.compile(r"(?m)^\s*cache:\s*(?:pip|npm|yarn|pnpm|gradle|maven)\s*$", re.I)
-RETENTION = re.compile(r"(?m)^\s*retention-days:\s*(\d+)\s*$")
+
+
+def runs_on_selectors(text: str) -> list[str]:
+    lines = text.splitlines()
+    selectors: list[str] = []
+    for index, line in enumerate(lines):
+        match = RUNS_ON_LINE.match(line)
+        if not match:
+            continue
+        inline = match.group("value").strip()
+        if inline:
+            selectors.append(inline)
+            continue
+
+        base_indent = len(match.group("indent"))
+        block: list[str] = []
+        for following in lines[index + 1 :]:
+            if not following.strip():
+                if block:
+                    break
+                continue
+            indent = len(following) - len(following.lstrip(" \t"))
+            if indent <= base_indent:
+                break
+            block.append(following.strip())
+        selectors.append(" ".join(block) if block else "<empty-runs-on>")
+    return selectors
+
+
+def fail(failures: list[dict[str, str]], rel: str, rule: str, detail: str) -> None:
+    failures.append({"file": rel, "rule": rule, "detail": detail})
+
 
 def main() -> int:
-    p = argparse.ArgumentParser()
-    p.add_argument("--root", default=".")
-    p.add_argument("--private", action="store_true")
-    p.add_argument("--repository-label", required=True)
-    p.add_argument("--max-artifact-retention-days", type=int, default=1)
-    args = p.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--root", default=".")
+    parser.add_argument("--private", action="store_true")
+    parser.add_argument("--repository-label", required=True)
+    args = parser.parse_args()
 
     root = Path(args.root)
     workflows = sorted((root / ".github" / "workflows").glob("*.y*ml"))
@@ -29,39 +60,68 @@ def main() -> int:
         text = path.read_text(encoding="utf-8")
         rel = str(path.relative_to(root))
 
-        if args.private:
-            for m in HOSTED.finditer(text):
-                failures.append({"file": rel, "rule": "private-hosted-runner-forbidden", "detail": m.group(0)})
+        if not args.private:
+            continue
 
-            if CACHE_ACTION.search(text) or SETUP_CACHE.search(text):
-                failures.append({"file": rel, "rule": "github-actions-cache-forbidden", "detail": "use runner-local cache instead"})
+        for match in HOSTED.finditer(text):
+            fail(failures, rel, "private-hosted-runner-forbidden", match.group(0))
 
-            # All explicit self-hosted Linux selectors must carry the hardened Oracle routing identity.
-            for line in RUNS_ON.findall(text):
-                if "self-hosted" in line and "Linux" in line:
-                    required = ("ARM64", "oracle-ci", args.repository_label)
-                    missing = [token for token in required if token not in line]
-                    if missing:
-                        failures.append({
-                            "file": rel,
-                            "rule": "self-hosted-linux-selector-incomplete",
-                            "detail": "missing " + ",".join(missing),
-                        })
+        if CACHE_ACTION.search(text) or SETUP_CACHE.search(text):
+            fail(
+                failures,
+                rel,
+                "github-actions-cache-forbidden",
+                "use runner-local cache instead",
+            )
 
-            upload_count = len(UPLOAD.findall(text))
-            if upload_count:
-                retentions = [int(v) for v in RETENTION.findall(text)]
-                if len(retentions) < upload_count:
-                    failures.append({"file": rel, "rule": "artifact-retention-missing", "detail": f"uploads={upload_count} retention_fields={len(retentions)}"})
-                if retentions and max(retentions) > args.max_artifact_retention_days:
-                    failures.append({
-                        "file": rel,
-                        "rule": "artifact-retention-too-long",
-                        "detail": f"max={max(retentions)} allowed={args.max_artifact_retention_days}",
-                    })
+        if UPLOAD_ARTIFACT.search(text):
+            fail(
+                failures,
+                rel,
+                "github-actions-artifact-storage-forbidden",
+                "write evidence to owned storage instead of actions/upload-artifact",
+            )
+
+        if UPLOAD_PAGES_ARTIFACT.search(text):
+            fail(
+                failures,
+                rel,
+                "github-pages-artifact-storage-forbidden",
+                "private repositories must not use GitHub-hosted artifact storage",
+            )
+
+        for selector in runs_on_selectors(text):
+            lower = selector.lower()
+            if "self-hosted" not in lower:
+                fail(
+                    failures,
+                    rel,
+                    "private-runner-must-be-owned-self-hosted",
+                    selector,
+                )
+                continue
+
+            if args.repository_label.lower() not in lower:
+                fail(
+                    failures,
+                    rel,
+                    "self-hosted-selector-missing-repository-label",
+                    f"{selector} (missing {args.repository_label})",
+                )
+
+            if "linux" in lower:
+                required = ("arm64", "oracle-ci")
+                missing = [token for token in required if token not in lower]
+                if missing:
+                    fail(
+                        failures,
+                        rel,
+                        "self-hosted-linux-selector-incomplete",
+                        f"{selector} (missing {','.join(missing)})",
+                    )
 
     result = {
-        "policy_version": 1,
+        "policy_version": 2,
         "private": bool(args.private),
         "repository_label": args.repository_label,
         "workflows_scanned": len(workflows),
@@ -69,6 +129,7 @@ def main() -> int:
     }
     print(json.dumps(result, indent=2, sort_keys=True))
     return 2 if failures else 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
