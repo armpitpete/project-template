@@ -31,7 +31,7 @@ jobs:
       - name: Fetch pinned validator
         shell: bash
         env:
-          POLICY_SHA: ${{ github.action_ref }}
+          POLICY_SHA: a46998e0472fcfeb927ce9d9ae60a84cd749befc
         run: |
           set -euo pipefail
           curl --fail --silent --show-error --location \
