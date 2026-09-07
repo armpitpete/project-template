@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   validate-project-control:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux]
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
