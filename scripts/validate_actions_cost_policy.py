@@ -90,6 +90,15 @@ def main() -> int:
                 "private repositories must not use GitHub-hosted artifact storage",
             )
 
+        for reusable in REUSABLE_JOB.findall(text):
+            if not ALLOWED_REUSABLE.fullmatch(reusable.strip()):
+                fail(
+                    failures,
+                    rel,
+                    "unverified-reusable-workflow-forbidden",
+                    reusable.strip(),
+                )
+
         for selector in runs_on_selectors(text):
             lower = selector.lower()
             if "self-hosted" not in lower:
