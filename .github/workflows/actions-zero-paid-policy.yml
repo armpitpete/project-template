@@ -31,7 +31,7 @@ jobs:
       - name: Fetch pinned validator
         shell: bash
         env:
-          POLICY_SHA: 57b64e48cabaea9455dc7686f2647927c222903c
+          POLICY_SHA: 7d14ccacf0c042b13fb4315a5f6542e7a6a81d41
         run: |
           set -euo pipefail
           curl --fail --silent --show-error --location \
@@ -44,4 +44,3 @@ jobs:
           --root .
           --repository-label "${{ inputs.repository_label }}"
           ${{ inputs.private_repository && '--private' || '' }}
-          --max-artifact-retention-days 1
