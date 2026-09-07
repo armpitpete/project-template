@@ -1,0 +1,47 @@
+name: Actions zero-paid policy
+
+on:
+  workflow_call:
+    inputs:
+      repository_label:
+        description: Repository-specific self-hosted runner label
+        required: true
+        type: string
+      runner_json:
+        description: JSON array for the owned policy-check runner
+        required: true
+        type: string
+      private_repository:
+        description: Enforce private-repository zero-paid policy
+        required: true
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  policy:
+    runs-on: ${{ fromJSON(inputs.runner_json) }}
+    timeout-minutes: 5
+    steps:
+      - name: Check out exact caller candidate
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: Fetch pinned validator
+        shell: bash
+        env:
+          POLICY_SHA: ${{ github.action_ref }}
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location \
+            "https://raw.githubusercontent.com/armpitpete/project-template/${POLICY_SHA}/scripts/validate_actions_cost_policy.py" \
+            -o "$RUNNER_TEMP/validate_actions_cost_policy.py"
+      - name: Enforce zero-paid Actions policy
+        shell: bash
+        run: >-
+          python3 "$RUNNER_TEMP/validate_actions_cost_policy.py"
+          --root .
+          --repository-label "${{ inputs.repository_label }}"
+          ${{ inputs.private_repository && '--private' || '' }}
+          --max-artifact-retention-days 1
