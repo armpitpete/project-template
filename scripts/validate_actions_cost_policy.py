@@ -48,11 +48,12 @@ def main() -> int:
                             "detail": "missing " + ",".join(missing),
                         })
 
-            if UPLOAD.search(text):
+            upload_count = len(UPLOAD.findall(text))
+            if upload_count:
                 retentions = [int(v) for v in RETENTION.findall(text)]
-                if not retentions:
-                    failures.append({"file": rel, "rule": "artifact-retention-missing", "detail": "upload-artifact requires explicit short retention"})
-                elif max(retentions) > args.max_artifact_retention_days:
+                if len(retentions) < upload_count:
+                    failures.append({"file": rel, "rule": "artifact-retention-missing", "detail": f"uploads={upload_count} retention_fields={len(retentions)}"})
+                if retentions and max(retentions) > args.max_artifact_retention_days:
                     failures.append({
                         "file": rel,
                         "rule": "artifact-retention-too-long",
