@@ -12,6 +12,11 @@ UPLOAD_ARTIFACT = re.compile(r"uses:\s*actions/upload-artifact@", re.I)
 UPLOAD_PAGES_ARTIFACT = re.compile(r"uses:\s*actions/upload-pages-artifact@", re.I)
 CACHE_ACTION = re.compile(r"uses:\s*actions/cache@", re.I)
 SETUP_CACHE = re.compile(r"(?m)^\s*cache:\s*(?:pip|npm|yarn|pnpm|gradle|maven)\s*$", re.I)
+REUSABLE_JOB = re.compile(r"(?m)^[ \t]{4}uses:\s*([^\s#]+)")
+ALLOWED_REUSABLE = re.compile(
+    r"^armpitpete/project-template/\.github/workflows/actions-zero-paid-policy\.yml@[0-9a-f]{40}$",
+    re.I,
+)
 
 
 def runs_on_selectors(text: str) -> list[str]:
